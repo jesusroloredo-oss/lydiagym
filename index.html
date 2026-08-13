@@ -133,14 +133,31 @@ html_content = """<!DOCTYPE html>
             border: 1px solid rgba(226, 232, 240, 0.6);
         }
 
+        .exercise-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .exercise-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            object-fit: cover;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
         .exercise-name {
             font-size: 1.1rem;
             font-weight: 700;
-            margin-bottom: 16px;
             color: var(--text-dark);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            line-height: 1.3;
         }
 
         .series-container {
@@ -192,7 +209,6 @@ html_content = """<!DOCTYPE html>
             transition: border-color 0.2s;
         }
         
-        /* Ocultar flechas de inputs numéricos */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 
             -webkit-appearance: none; 
@@ -292,18 +308,17 @@ html_content = """<!DOCTYPE html>
     </div>
 
     <script>
-        // Datos extraídos del PDF proporcionado
         const rutinas = [
             {
                 id: "day1",
                 title: "DÍA 1",
                 subtitle: "GLUTES & HAMSTRINGS",
                 exercises: [
-                    "Hack Squat (Sentadilla Hack)",
-                    "Leg Curl (Curl Isquios)",
-                    "Hip Thrust",
-                    "RDL (Peso Muerto Rumano)",
-                    "Glute Extension (Extensión de Glúteo)"
+                    { name: "Hack Squat (Sentadilla Hack)", img: "img/hack-squat.jpg" },
+                    { name: "Leg Curl (Curl Isquios)", img: "img/leg-curl.jpg" },
+                    { name: "Hip Thrust", img: "img/hip-thrust.jpg" },
+                    { name: "RDL (Peso Muerto Rumano)", img: "img/rdl.jpg" },
+                    { name: "Glute Extension (Extensión de Glúteo)", img: "img/glute-extension.jpg" }
                 ]
             },
             {
@@ -311,11 +326,11 @@ html_content = """<!DOCTYPE html>
                 title: "DÍA 2",
                 subtitle: "PUSH: CHEST, SHOULDERS, TRICEPS",
                 exercises: [
-                    "Chest Press (Máquina / Mancuernas)",
-                    "Overhead Press (Press Militar)",
-                    "Lateral Raises (Elevaciones Laterales)",
-                    "Tricep Pushdown (Extensión Tríceps Polea)",
-                    "Dips (Fondos)"
+                    { name: "Chest Press (Máquina / Mancuernas)", img: "img/chest-press.jpg" },
+                    { name: "Overhead Press (Press Militar)", img: "img/overhead-press.jpg" },
+                    { name: "Lateral Raises (Elevaciones Laterales)", img: "img/lateral-raises.jpg" },
+                    { name: "Tricep Pushdown (Extensión Tríceps Polea)", img: "img/tricep-pushdown.jpg" },
+                    { name: "Dips (Fondos)", img: "img/dips.jpg" }
                 ]
             },
             {
@@ -323,10 +338,10 @@ html_content = """<!DOCTYPE html>
                 title: "DÍA 3",
                 subtitle: "QUADS & GLUTES",
                 exercises: [
-                    "Leg Press (Prensa)",
-                    "Bulgarian Split Squat (Búlgara)",
-                    "Leg Extension (Extensión Cuádriceps)",
-                    "Hack Squat / Sentadilla Libre"
+                    { name: "Leg Press (Prensa)", img: "img/leg-press.jpg" },
+                    { name: "Bulgarian Split Squat (Búlgara)", img: "img/bulgarian-squat.jpg" },
+                    { name: "Leg Extension (Extensión Cuádriceps)", img: "img/leg-extension.jpg" },
+                    { name: "Hack Squat / Sentadilla Libre", img: "img/hack-squat-2.jpg" }
                 ]
             },
             {
@@ -334,11 +349,11 @@ html_content = """<!DOCTYPE html>
                 title: "DÍA 4",
                 subtitle: "PULL: BACK, BICEPS, ABS",
                 exercises: [
-                    "Lat Pulldown (Jalón al Pecho)",
-                    "Seated Row (Remo Sentado)",
-                    "Assisted Pull-ups (Dominadas Asistidas)",
-                    "Bicep Curl (Curl de Bíceps)",
-                    "Ab Crunches (Abdominales)"
+                    { name: "Lat Pulldown (Jalón al Pecho)", img: "img/lat-pulldown.jpg" },
+                    { name: "Seated Row (Remo Sentado)", img: "img/seated-row.jpg" },
+                    { name: "Assisted Pull-ups (Dominadas Asistidas)", img: "img/assisted-pullups.jpg" },
+                    { name: "Bicep Curl (Curl de Bíceps)", img: "img/bicep-curl.jpg" },
+                    { name: "Ab Crunches (Abdominales)", img: "img/crunches.jpg" }
                 ]
             }
         ];
@@ -350,19 +365,16 @@ html_content = """<!DOCTYPE html>
             const container = document.getElementById('workouts-container');
 
             rutinas.forEach((rutina, index) => {
-                // Crear botones de navegación
                 const btn = document.createElement('button');
                 btn.className = `day-btn ${index === 0 ? 'active' : ''}`;
                 btn.textContent = rutina.title;
                 btn.onclick = () => showDay(rutina.id, btn);
                 selector.appendChild(btn);
 
-                // Crear contenedor de día
                 const dayDiv = document.createElement('div');
                 dayDiv.className = `workout-day ${index === 0 ? 'active' : ''}`;
                 dayDiv.id = rutina.id;
                 
-                // Título del día
                 const titleContainer = document.createElement('div');
                 titleContainer.className = 'day-title-container';
                 titleContainer.innerHTML = `
@@ -371,21 +383,28 @@ html_content = """<!DOCTYPE html>
                 `;
                 dayDiv.appendChild(titleContainer);
 
-                // Crear ejercicios
                 rutina.exercises.forEach((ejercicio, exIndex) => {
                     const exCard = document.createElement('div');
                     exCard.className = 'exercise-card';
                     
-                    exCard.innerHTML = `<div class="exercise-name">${ejercicio}</div>`;
+                    // Header del ejercicio con la imagen y el nombre
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'exercise-header';
+                    
+                    // Fallback visual si la imagen aún no está subida al repositorio
+                    const fallbackImg = "https://placehold.co/120x120/F1F5F9/94A3B8?text=Img";
+                    
+                    headerDiv.innerHTML = `
+                        <img src="${ejercicio.img}" class="exercise-img" alt="${ejercicio.name}" onerror="this.src='${fallbackImg}'">
+                        <div class="exercise-name">${ejercicio.name}</div>
+                    `;
+                    exCard.appendChild(headerDiv);
                     
                     const seriesContainer = document.createElement('div');
                     seriesContainer.className = 'series-container';
 
-                    // Crear 3 series por ejercicio (basado en el PDF Serie 1, Serie 2, Serie 3)
                     for(let s = 1; s <= 3; s++) {
                         const serieKey = `${rutina.id}_ex${exIndex}_s${s}`;
-                        
-                        // Cargar datos guardados si existen
                         const savedWeight = localStorage.getItem(`${serieKey}_w`) || '';
                         const savedReps = localStorage.getItem(`${serieKey}_r`) || '';
 
@@ -417,14 +436,9 @@ html_content = """<!DOCTYPE html>
         }
 
         function showDay(dayId, btnElement) {
-            // Ocultar todos los días
             document.querySelectorAll('.workout-day').forEach(el => el.classList.remove('active'));
-            // Desactivar todos los botones
             document.querySelectorAll('.day-btn').forEach(el => el.classList.remove('active'));
-            
-            // Mostrar día seleccionado
             document.getElementById(dayId).classList.add('active');
-            // Activar botón seleccionado
             btnElement.classList.add('active');
         }
 
@@ -432,7 +446,6 @@ html_content = """<!DOCTYPE html>
             const input = document.getElementById(inputId);
             localStorage.setItem(inputId, input.value);
             
-            // Mostrar notificación de guardado (Debounced)
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(() => {
                 const toast = document.getElementById('toast');
@@ -453,7 +466,6 @@ html_content = """<!DOCTYPE html>
             }
         }
 
-        // Iniciar la app cuando carga el DOM
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
@@ -463,4 +475,4 @@ html_content = """<!DOCTYPE html>
 with open('index.html', 'w', encoding='utf-8') as f:
     f.write(html_content)
     
-print("File generated successfully.")
+print("File updated successfully.")
