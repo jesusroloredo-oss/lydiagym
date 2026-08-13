@@ -1,0 +1,466 @@
+html_content = """<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gimnasio Lydia</title>
+    <style>
+        :root {
+            --primary: #E11D48;
+            --primary-light: #FDA4AF;
+            --bg-color: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --text-dark: #0F172A;
+            --text-light: #64748B;
+            --border: #E2E8F0;
+            --success: #10B981;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            padding-bottom: 60px;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 24px 20px;
+            text-align: center;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .day-selector {
+            display: flex;
+            overflow-x: auto;
+            gap: 12px;
+            padding: 5px 0 15px 0;
+            margin-bottom: 10px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .day-selector::-webkit-scrollbar {
+            display: none;
+        }
+
+        .day-btn {
+            flex: 0 0 auto;
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 24px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .day-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 6px -1px rgba(225, 29, 72, 0.3);
+        }
+
+        .workout-day {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .workout-day.active {
+            display: block;
+        }
+        
+        .day-title-container {
+            margin-bottom: 20px;
+            padding-left: 5px;
+        }
+        
+        .day-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        
+        .day-subtitle {
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .exercise-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+        }
+
+        .exercise-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .series-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .serie-row {
+            display: grid;
+            grid-template-columns: 40px 1fr 1fr;
+            align-items: center;
+            gap: 12px;
+            background-color: var(--bg-color);
+            padding: 10px;
+            border-radius: 12px;
+        }
+
+        .serie-badge {
+            background-color: var(--text-light);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 10px 12px;
+            padding-right: 35px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            background: var(--card-bg);
+            text-align: left;
+            transition: border-color 0.2s;
+        }
+        
+        /* Ocultar flechas de inputs numéricos */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1);
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 12px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            font-weight: 600;
+            pointer-events: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1E293B;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .reset-btn {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            color: var(--text-light);
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            font-weight: 600;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .reset-btn:hover {
+            border-color: var(--text-light);
+            color: var(--text-dark);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Gimnasio Lydia</h1>
+        <p>Registro de Entrenamientos</p>
+    </header>
+
+    <div class="container">
+        <div class="day-selector" id="day-selector">
+            <!-- Day buttons injected here -->
+        </div>
+
+        <div id="workouts-container">
+            <!-- Workout forms injected here -->
+        </div>
+        
+        <button class="reset-btn" onclick="limpiarDatos()">Empezar nueva semana (Borrar datos)</button>
+    </div>
+
+    <div class="toast" id="toast">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        Guardado automáticamente
+    </div>
+
+    <script>
+        // Datos extraídos del PDF proporcionado
+        const rutinas = [
+            {
+                id: "day1",
+                title: "DÍA 1",
+                subtitle: "GLUTES & HAMSTRINGS",
+                exercises: [
+                    "Hack Squat (Sentadilla Hack)",
+                    "Leg Curl (Curl Isquios)",
+                    "Hip Thrust",
+                    "RDL (Peso Muerto Rumano)",
+                    "Glute Extension (Extensión de Glúteo)"
+                ]
+            },
+            {
+                id: "day2",
+                title: "DÍA 2",
+                subtitle: "PUSH: CHEST, SHOULDERS, TRICEPS",
+                exercises: [
+                    "Chest Press (Máquina / Mancuernas)",
+                    "Overhead Press (Press Militar)",
+                    "Lateral Raises (Elevaciones Laterales)",
+                    "Tricep Pushdown (Extensión Tríceps Polea)",
+                    "Dips (Fondos)"
+                ]
+            },
+            {
+                id: "day3",
+                title: "DÍA 3",
+                subtitle: "QUADS & GLUTES",
+                exercises: [
+                    "Leg Press (Prensa)",
+                    "Bulgarian Split Squat (Búlgara)",
+                    "Leg Extension (Extensión Cuádriceps)",
+                    "Hack Squat / Sentadilla Libre"
+                ]
+            },
+            {
+                id: "day4",
+                title: "DÍA 4",
+                subtitle: "PULL: BACK, BICEPS, ABS",
+                exercises: [
+                    "Lat Pulldown (Jalón al Pecho)",
+                    "Seated Row (Remo Sentado)",
+                    "Assisted Pull-ups (Dominadas Asistidas)",
+                    "Bicep Curl (Curl de Bíceps)",
+                    "Ab Crunches (Abdominales)"
+                ]
+            }
+        ];
+
+        let saveTimeout;
+
+        function initApp() {
+            const selector = document.getElementById('day-selector');
+            const container = document.getElementById('workouts-container');
+
+            rutinas.forEach((rutina, index) => {
+                // Crear botones de navegación
+                const btn = document.createElement('button');
+                btn.className = `day-btn ${index === 0 ? 'active' : ''}`;
+                btn.textContent = rutina.title;
+                btn.onclick = () => showDay(rutina.id, btn);
+                selector.appendChild(btn);
+
+                // Crear contenedor de día
+                const dayDiv = document.createElement('div');
+                dayDiv.className = `workout-day ${index === 0 ? 'active' : ''}`;
+                dayDiv.id = rutina.id;
+                
+                // Título del día
+                const titleContainer = document.createElement('div');
+                titleContainer.className = 'day-title-container';
+                titleContainer.innerHTML = `
+                    <div class="day-subtitle">${rutina.subtitle}</div>
+                    <div class="day-title">${rutina.title}</div>
+                `;
+                dayDiv.appendChild(titleContainer);
+
+                // Crear ejercicios
+                rutina.exercises.forEach((ejercicio, exIndex) => {
+                    const exCard = document.createElement('div');
+                    exCard.className = 'exercise-card';
+                    
+                    exCard.innerHTML = `<div class="exercise-name">${ejercicio}</div>`;
+                    
+                    const seriesContainer = document.createElement('div');
+                    seriesContainer.className = 'series-container';
+
+                    // Crear 3 series por ejercicio (basado en el PDF Serie 1, Serie 2, Serie 3)
+                    for(let s = 1; s <= 3; s++) {
+                        const serieKey = `${rutina.id}_ex${exIndex}_s${s}`;
+                        
+                        // Cargar datos guardados si existen
+                        const savedWeight = localStorage.getItem(`${serieKey}_w`) || '';
+                        const savedReps = localStorage.getItem(`${serieKey}_r`) || '';
+
+                        seriesContainer.innerHTML += `
+                            <div class="serie-row">
+                                <div class="serie-badge">${s}</div>
+                                <div class="input-wrapper">
+                                    <input type="number" step="0.5" placeholder="Peso" 
+                                           id="${serieKey}_w" value="${savedWeight}"
+                                           oninput="autoSave('${serieKey}_w')">
+                                    <span class="input-unit">kg</span>
+                                </div>
+                                <div class="input-wrapper">
+                                    <input type="number" placeholder="Reps" 
+                                           id="${serieKey}_r" value="${savedReps}"
+                                           oninput="autoSave('${serieKey}_r')">
+                                    <span class="input-unit">reps</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    exCard.appendChild(seriesContainer);
+                    dayDiv.appendChild(exCard);
+                });
+
+                container.appendChild(dayDiv);
+            });
+        }
+
+        function showDay(dayId, btnElement) {
+            // Ocultar todos los días
+            document.querySelectorAll('.workout-day').forEach(el => el.classList.remove('active'));
+            // Desactivar todos los botones
+            document.querySelectorAll('.day-btn').forEach(el => el.classList.remove('active'));
+            
+            // Mostrar día seleccionado
+            document.getElementById(dayId).classList.add('active');
+            // Activar botón seleccionado
+            btnElement.classList.add('active');
+        }
+
+        function autoSave(inputId) {
+            const input = document.getElementById(inputId);
+            localStorage.setItem(inputId, input.value);
+            
+            // Mostrar notificación de guardado (Debounced)
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                const toast = document.getElementById('toast');
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2000);
+            }, 800);
+        }
+        
+        function limpiarDatos() {
+            if(confirm('¿Estás seguro de que quieres borrar todos los pesos y repeticiones de la rutina?')) {
+                const inputs = document.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.value = '';
+                    localStorage.removeItem(input.id);
+                });
+            }
+        }
+
+        // Iniciar la app cuando carga el DOM
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
+"""
+
+with open('index.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+    
+print("File generated successfully.")
