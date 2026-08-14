@@ -1,4 +1,3 @@
-html_content = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -169,16 +168,15 @@ html_content = """<!DOCTYPE html>
 
         .serie-row {
             display: grid;
-            grid-template-columns: 40px 1fr 1fr;
+            grid-template-columns: 40px 1fr 1fr 44px; /* Añadido espacio para el botón de check */
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             background-color: var(--bg-color);
             padding: 10px;
             border-radius: 12px;
-            transition: background-color 0.3s ease; /* Transición suave para el color verde */
+            transition: background-color 0.3s ease; 
         }
         
-        /* Clase que se añadirá cuando la serie esté completa */
         .serie-row.completed {
             background-color: var(--success-light);
             border: 1px solid rgba(16, 185, 129, 0.2);
@@ -211,7 +209,7 @@ html_content = """<!DOCTYPE html>
         .input-wrapper input {
             width: 100%;
             padding: 10px 12px;
-            padding-right: 35px;
+            padding-right: 30px; /* Reducido un poco para que quepa bien */
             border: 1px solid var(--border);
             border-radius: 8px;
             font-size: 1rem;
@@ -237,7 +235,6 @@ html_content = """<!DOCTYPE html>
             box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1);
         }
         
-        /* Ajuste de color de borde cuando está completado y tiene el foco */
         .serie-row.completed .input-wrapper input:focus {
             border-color: var(--success);
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
@@ -245,11 +242,36 @@ html_content = """<!DOCTYPE html>
 
         .input-unit {
             position: absolute;
-            right: 12px;
-            font-size: 0.8rem;
+            right: 8px;
+            font-size: 0.75rem;
             color: var(--text-light);
             font-weight: 600;
             pointer-events: none;
+        }
+
+        /* Estilos del nuevo botón "tick" */
+        .check-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            background: var(--card-bg);
+            color: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 0;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .serie-row.completed .check-btn {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
         }
 
         @keyframes fadeIn {
@@ -434,8 +456,8 @@ html_content = """<!DOCTYPE html>
                         const savedWeight = localStorage.getItem(`${serieKey}_w`) || '';
                         const savedReps = localStorage.getItem(`${serieKey}_r`) || '';
                         
-                        // Determinar si la serie ya estaba completada al cargar
-                        const isCompleted = savedWeight.trim() !== '' && savedReps.trim() !== '';
+                        // Determinar si el usuario marcó la serie como completada
+                        const isCompleted = localStorage.getItem(`${serieKey}_done`) === 'true';
 
                         seriesContainer.innerHTML += `
                             <div class="serie-row ${isCompleted ? 'completed' : ''}" id="row_${serieKey}">
@@ -452,6 +474,11 @@ html_content = """<!DOCTYPE html>
                                            oninput="autoSave('${serieKey}')">
                                     <span class="input-unit">reps</span>
                                 </div>
+                                <button class="check-btn" onclick="toggleDone('${serieKey}')" aria-label="Marcar como completado">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </button>
                             </div>
                         `;
                     }
@@ -471,25 +498,13 @@ html_content = """<!DOCTYPE html>
             btnElement.classList.add('active');
         }
 
-        // Modificada para recibir la clave base de la serie y comprobar si está completada
         function autoSave(serieKeyBase) {
-            // Guardar peso
             const weightInput = document.getElementById(`${serieKeyBase}_w`);
             localStorage.setItem(`${serieKeyBase}_w`, weightInput.value);
             
-            // Guardar reps
             const repsInput = document.getElementById(`${serieKeyBase}_r`);
             localStorage.setItem(`${serieKeyBase}_r`, repsInput.value);
             
-            // Comprobar si ambos campos tienen valor para poner la fila verde
-            const row = document.getElementById(`row_${serieKeyBase}`);
-            if (weightInput.value.trim() !== '' && repsInput.value.trim() !== '') {
-                row.classList.add('completed');
-            } else {
-                row.classList.remove('completed');
-            }
-            
-            // Notificación de guardado
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(() => {
                 const toast = document.getElementById('toast');
@@ -500,15 +515,35 @@ html_content = """<!DOCTYPE html>
             }, 800);
         }
         
+        // Nueva función para el botón de tick
+        function toggleDone(serieKey) {
+            const row = document.getElementById(`row_${serieKey}`);
+            const isCurrentlyDone = row.classList.contains('completed');
+            
+            if (isCurrentlyDone) {
+                // Desmarcar
+                row.classList.remove('completed');
+                localStorage.setItem(`${serieKey}_done`, 'false');
+            } else {
+                // Marcar
+                row.classList.add('completed');
+                localStorage.setItem(`${serieKey}_done`, 'true');
+            }
+        }
+        
         function limpiarDatos() {
-            if(confirm('¿Estás seguro de que quieres borrar todos los pesos y repeticiones de la rutina?')) {
+            if(confirm('¿Estás seguro de que quieres borrar todos los pesos, repeticiones y marcas de completado para empezar una semana nueva?')) {
                 const inputs = document.querySelectorAll('input');
                 inputs.forEach(input => {
                     input.value = '';
+                    // Borramos pesos y reps
                     localStorage.removeItem(input.id);
+                    // Borramos la marca de completado (usando la base del id)
+                    const baseId = input.id.substring(0, input.id.length - 2); // quita el "_w" o "_r"
+                    localStorage.removeItem(`${baseId}_done`);
                 });
                 
-                // Quitar la clase completed de todas las filas
+                // Quitar la clase completed visualmente
                 const rows = document.querySelectorAll('.serie-row');
                 rows.forEach(row => {
                     row.classList.remove('completed');
