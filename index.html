@@ -1,9 +1,10 @@
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gimnasio Lydia</title>
-
+    
     <!-- Etiquetas PWA para que parezca una app nativa -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="img/icon.png">
@@ -419,10 +420,33 @@
             cursor: pointer;
             transition: all 0.2s;
         }
+
+        .hard-reset-btn {
+            display: none; /* Solo se muestra en modo edición */
+            width: 100%;
+            padding: 14px;
+            background: rgba(225, 29, 72, 0.1);
+            color: var(--primary);
+            border: 2px solid var(--primary-light);
+            border-radius: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        body.edit-mode .hard-reset-btn {
+            display: block;
+        }
         
         .reset-btn:hover {
             border-color: var(--text-light);
             color: var(--text-dark);
+        }
+
+        .hard-reset-btn:hover {
+            background: var(--primary);
+            color: white;
         }
     </style>
 </head>
@@ -451,7 +475,10 @@
     <div class="container">
         <div class="day-selector" id="day-selector"></div>
         <div id="workouts-container"></div>
+        
         <button class="reset-btn" onclick="limpiarDatos()">Empezar nueva semana (Borrar datos)</button>
+        <!-- Nuevo botón para recargar el código HTML -->
+        <button class="hard-reset-btn" onclick="restaurarEjerciciosOriginales()">Restaurar ejercicios originales</button>
     </div>
 
     <div class="toast" id="toast">
@@ -472,6 +499,7 @@
             });
         }
 
+        // --- ¡AQUÍ ES DONDE DEBES HACER TUS CAMBIOS DE EJERCICIOS! ---
         const defaultRutinas = [
             {
                 id: "day1",
@@ -530,6 +558,8 @@
                 ]
             }
         ];
+
+        // -------------------------------------------------------------
 
         let rutinas = [];
         let saveTimeout;
@@ -713,6 +743,14 @@
                 });
                 
                 showToast('Semana reseteada correctamente');
+            }
+        }
+
+        // Nueva función para forzar la recarga del código HTML nuevo
+        function restaurarEjerciciosOriginales() {
+            if(confirm('¿Quieres cargar los ejercicios tal y como están en el código actual? Perderás el orden que hayas establecido manualmente.')) {
+                localStorage.removeItem('rutinas_config');
+                window.location.reload();
             }
         }
 
