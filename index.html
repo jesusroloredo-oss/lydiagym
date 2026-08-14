@@ -13,7 +13,19 @@
             --text-light: #64748B;
             --border: #E2E8F0;
             --success: #10B981;
-            --success-light: #D1FAE5; /* Color verde clarito para la serie completada */
+            --success-light: #D1FAE5;
+            --header-text: #FFFFFF;
+            --icon-bg: rgba(255, 255, 255, 0.2);
+        }
+
+        body.dark-mode {
+            --bg-color: #0F172A;
+            --card-bg: #1E293B;
+            --text-dark: #F8FAFC;
+            --text-light: #94A3B8;
+            --border: #334155;
+            --success-light: rgba(16, 185, 129, 0.15);
+            --icon-bg: rgba(255, 255, 255, 0.15);
         }
 
         * {
@@ -28,31 +40,66 @@
             background-color: var(--bg-color);
             color: var(--text-dark);
             padding-bottom: 60px;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         header {
             background-color: var(--primary);
-            color: white;
-            padding: 24px 20px;
-            text-align: center;
+            color: var(--header-text);
+            padding: 20px;
             border-bottom-left-radius: 20px;
             border-bottom-right-radius: 20px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             position: sticky;
             top: 0;
             z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-titles {
+            text-align: left;
         }
 
         h1 {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 700;
             letter-spacing: -0.5px;
         }
         
         header p {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             opacity: 0.9;
             margin-top: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            background: var(--icon-bg);
+            border: none;
+            color: var(--header-text);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:active {
+            transform: scale(0.95);
+        }
+
+        .icon-btn.active-edit {
+            background: var(--success);
+            box-shadow: 0 0 0 2px white;
         }
 
         .container {
@@ -129,8 +176,47 @@
             border-radius: 16px;
             padding: 20px;
             margin-bottom: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            border: 1px solid rgba(226, 232, 240, 0.6);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        /* Estilos del Modo Edición */
+        body.edit-mode .exercise-card {
+            border: 2px dashed var(--primary-light);
+            transform: scale(0.98);
+        }
+
+        .edit-controls {
+            display: none;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            gap: 6px;
+            z-index: 2;
+        }
+
+        body.edit-mode .edit-controls {
+            display: flex;
+        }
+
+        .move-btn {
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            color: var(--text-dark);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .move-btn:active {
+            background: var(--border);
         }
 
         .exercise-header {
@@ -140,6 +226,16 @@
             margin-bottom: 20px;
             padding-bottom: 16px;
             border-bottom: 1px dashed var(--border);
+            transition: opacity 0.3s;
+        }
+        
+        body.edit-mode .exercise-header {
+            padding-right: 80px; /* Espacio para los botones de mover */
+        }
+
+        body.edit-mode .series-container {
+            opacity: 0.4;
+            pointer-events: none; /* Desactiva inputs mientras editas orden */
         }
 
         .exercise-img {
@@ -150,7 +246,6 @@
             background-color: var(--bg-color);
             border: 1px solid var(--border);
             flex-shrink: 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .exercise-name {
@@ -164,22 +259,24 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+            transition: opacity 0.3s;
         }
 
         .serie-row {
             display: grid;
-            grid-template-columns: 40px 1fr 1fr 44px; /* Añadido espacio para el botón de check */
+            grid-template-columns: 40px 1fr 1fr 44px;
             align-items: center;
             gap: 10px;
             background-color: var(--bg-color);
             padding: 10px;
             border-radius: 12px;
-            transition: background-color 0.3s ease; 
+            transition: background-color 0.3s ease, border-color 0.3s ease; 
+            border: 1px solid transparent;
         }
         
         .serie-row.completed {
             background-color: var(--success-light);
-            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.3);
         }
         
         .serie-row.completed .serie-badge {
@@ -209,7 +306,7 @@
         .input-wrapper input {
             width: 100%;
             padding: 10px 12px;
-            padding-right: 30px; /* Reducido un poco para que quepa bien */
+            padding-right: 30px;
             border: 1px solid var(--border);
             border-radius: 8px;
             font-size: 1rem;
@@ -217,7 +314,7 @@
             color: var(--text-dark);
             background: var(--card-bg);
             text-align: left;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         
         input[type=number]::-webkit-inner-spin-button, 
@@ -249,7 +346,6 @@
             pointer-events: none;
         }
 
-        /* Estilos del nuevo botón "tick" */
         .check-btn {
             width: 36px;
             height: 36px;
@@ -324,8 +420,24 @@
 <body>
 
     <header>
-        <h1>Gimnasio Lydia</h1>
-        <p>Registro de Entrenamientos</p>
+        <div class="header-titles">
+            <h1>Gimnasio Lydia</h1>
+            <p>Registro de Entrenamientos</p>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Cambiar tema">
+                <!-- Por defecto se muestra la luna (modo claro) -->
+                <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+            <button class="icon-btn" onclick="toggleEditMode()" id="edit-btn" aria-label="Modo edición">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+            </button>
+        </div>
     </header>
 
     <div class="container">
@@ -345,11 +457,11 @@
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
         </svg>
-        Guardado automáticamente
+        <span id="toast-msg">Guardado automáticamente</span>
     </div>
 
     <script>
-        const rutinas = [
+        const defaultRutinas = [
             {
                 id: "day1",
                 title: "DÍA 1",
@@ -408,21 +520,51 @@
             }
         ];
 
+        let rutinas = [];
         let saveTimeout;
+        let activeDayId = "day1";
+        let isEditMode = false;
+        let isDarkMode = false;
 
-        function initApp() {
+        function loadConfig() {
+            // Cargar rutinas guardadas o inicializar con IDs únicos para cada ejercicio
+            const savedConfig = localStorage.getItem('rutinas_config');
+            if (savedConfig) {
+                rutinas = JSON.parse(savedConfig);
+            } else {
+                rutinas = defaultRutinas.map(r => ({
+                    ...r,
+                    exercises: r.exercises.map((ex, i) => ({ ...ex, id: `ex${i}` }))
+                }));
+                localStorage.setItem('rutinas_config', JSON.stringify(rutinas));
+            }
+
+            // Cargar preferencias de tema
+            isDarkMode = localStorage.getItem('dark_mode') === 'true';
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                updateThemeIcon();
+            }
+        }
+
+        function renderApp() {
             const selector = document.getElementById('day-selector');
             const container = document.getElementById('workouts-container');
+            
+            selector.innerHTML = '';
+            container.innerHTML = '';
 
             rutinas.forEach((rutina, index) => {
+                // Generar botones de día
                 const btn = document.createElement('button');
-                btn.className = `day-btn ${index === 0 ? 'active' : ''}`;
+                btn.className = `day-btn ${rutina.id === activeDayId ? 'active' : ''}`;
                 btn.textContent = rutina.title;
                 btn.onclick = () => showDay(rutina.id, btn);
                 selector.appendChild(btn);
 
+                // Generar contenedor del día
                 const dayDiv = document.createElement('div');
-                dayDiv.className = `workout-day ${index === 0 ? 'active' : ''}`;
+                dayDiv.className = `workout-day ${rutina.id === activeDayId ? 'active' : ''}`;
                 dayDiv.id = rutina.id;
                 
                 const titleContainer = document.createElement('div');
@@ -433,13 +575,29 @@
                 `;
                 dayDiv.appendChild(titleContainer);
 
+                // Generar ejercicios
                 rutina.exercises.forEach((ejercicio, exIndex) => {
                     const exCard = document.createElement('div');
                     exCard.className = 'exercise-card';
                     
+                    // Controles de edición (flechas subir/bajar)
+                    const isFirst = exIndex === 0;
+                    const isLast = exIndex === rutina.exercises.length - 1;
+                    
+                    const editControls = document.createElement('div');
+                    editControls.className = 'edit-controls';
+                    editControls.innerHTML = `
+                        <button class="move-btn" onclick="moveExercise('${rutina.id}', ${exIndex}, -1)" ${isFirst ? 'style="opacity:0.3; pointer-events:none;"' : ''} aria-label="Subir">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                        </button>
+                        <button class="move-btn" onclick="moveExercise('${rutina.id}', ${exIndex}, 1)" ${isLast ? 'style="opacity:0.3; pointer-events:none;"' : ''} aria-label="Bajar">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                        </button>
+                    `;
+                    exCard.appendChild(editControls);
+
                     const headerDiv = document.createElement('div');
                     headerDiv.className = 'exercise-header';
-                    
                     const fallbackImg = "https://placehold.co/120x120/F1F5F9/94A3B8?text=Img";
                     
                     headerDiv.innerHTML = `
@@ -451,12 +609,11 @@
                     const seriesContainer = document.createElement('div');
                     seriesContainer.className = 'series-container';
 
+                    // Usamos el ID permanente del ejercicio (ejercicio.id) para que los datos persistan al moverlo
                     for(let s = 1; s <= 3; s++) {
-                        const serieKey = `${rutina.id}_ex${exIndex}_s${s}`;
+                        const serieKey = `${rutina.id}_${ejercicio.id}_s${s}`;
                         const savedWeight = localStorage.getItem(`${serieKey}_w`) || '';
                         const savedReps = localStorage.getItem(`${serieKey}_r`) || '';
-                        
-                        // Determinar si el usuario marcó la serie como completada
                         const isCompleted = localStorage.getItem(`${serieKey}_done`) === 'true';
 
                         seriesContainer.innerHTML += `
@@ -492,40 +649,43 @@
         }
 
         function showDay(dayId, btnElement) {
+            activeDayId = dayId;
             document.querySelectorAll('.workout-day').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.day-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(dayId).classList.add('active');
-            btnElement.classList.add('active');
+            
+            if(btnElement) {
+                btnElement.classList.add('active');
+            } else {
+                // Si no se pasa elemento, busca el botón correspondiente
+                const buttons = document.querySelectorAll('.day-btn');
+                const index = rutinas.findIndex(r => r.id === dayId);
+                if(buttons[index]) buttons[index].classList.add('active');
+            }
         }
 
         function autoSave(serieKeyBase) {
+            if(isEditMode) return; // Prevenir guardado accidental en modo edición
+            
             const weightInput = document.getElementById(`${serieKeyBase}_w`);
             localStorage.setItem(`${serieKeyBase}_w`, weightInput.value);
             
             const repsInput = document.getElementById(`${serieKeyBase}_r`);
             localStorage.setItem(`${serieKeyBase}_r`, repsInput.value);
             
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                const toast = document.getElementById('toast');
-                toast.classList.add('show');
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                }, 2000);
-            }, 800);
+            showToast('Guardado automáticamente');
         }
         
-        // Nueva función para el botón de tick
         function toggleDone(serieKey) {
+            if(isEditMode) return;
+            
             const row = document.getElementById(`row_${serieKey}`);
             const isCurrentlyDone = row.classList.contains('completed');
             
             if (isCurrentlyDone) {
-                // Desmarcar
                 row.classList.remove('completed');
                 localStorage.setItem(`${serieKey}_done`, 'false');
             } else {
-                // Marcar
                 row.classList.add('completed');
                 localStorage.setItem(`${serieKey}_done`, 'true');
             }
@@ -535,26 +695,90 @@
             if(confirm('¿Estás seguro de que quieres borrar las repeticiones y desmarcar las series para empezar una nueva semana? (Tus pesos se mantendrán)')) {
                 const inputs = document.querySelectorAll('input');
                 inputs.forEach(input => {
-                    // Solo borramos las repeticiones, no los pesos
                     if (input.id.endsWith('_r')) {
                         input.value = '';
                         localStorage.removeItem(input.id);
                         
-                        // Borramos la marca de completado
                         const baseId = input.id.substring(0, input.id.length - 2); 
                         localStorage.removeItem(`${baseId}_done`);
                     }
                 });
                 
-                // Quitar la clase completed visualmente
                 const rows = document.querySelectorAll('.serie-row');
                 rows.forEach(row => {
                     row.classList.remove('completed');
                 });
+                
+                showToast('Semana reseteada correctamente');
             }
         }
 
-        document.addEventListener('DOMContentLoaded', initApp);
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            localStorage.setItem('dark_mode', isDarkMode);
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const iconSvg = document.getElementById('theme-icon');
+            if (isDarkMode) {
+                // Icono de Sol
+                iconSvg.innerHTML = `<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
+            } else {
+                // Icono de Luna
+                iconSvg.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>`;
+            }
+        }
+
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            document.body.classList.toggle('edit-mode', isEditMode);
+            const editBtn = document.getElementById('edit-btn');
+            
+            if(isEditMode) {
+                editBtn.classList.add('active-edit');
+                showToast('Modo edición activado: Ordena los ejercicios');
+            } else {
+                editBtn.classList.remove('active-edit');
+            }
+        }
+
+        function moveExercise(dayId, index, direction) {
+            const dayIndex = rutinas.findIndex(r => r.id === dayId);
+            if (dayIndex === -1) return;
+            
+            const exercisesArr = rutinas[dayIndex].exercises;
+            const newIndex = index + direction;
+            
+            if (newIndex < 0 || newIndex >= exercisesArr.length) return;
+            
+            // Intercambiar posiciones en el array
+            const temp = exercisesArr[index];
+            exercisesArr[index] = exercisesArr[newIndex];
+            exercisesArr[newIndex] = temp;
+            
+            // Guardar configuración y re-renderizar
+            localStorage.setItem('rutinas_config', JSON.stringify(rutinas));
+            renderApp();
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = message;
+            
+            clearTimeout(saveTimeout);
+            toast.classList.add('show');
+            saveTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConfig();
+            renderApp();
+            showDay(activeDayId);
+        });
     </script>
 </body>
 </html>
