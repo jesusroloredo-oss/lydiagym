@@ -3,6 +3,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gimnasio Lydia</title>
+    
+    <!-- Etiquetas PWA para que parezca una app nativa -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="img/icon.png">
+    <link rel="apple-touch-icon" href="img/icon.png">
+    <meta name="theme-color" content="#E11D48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Gym Lydia">
+
     <style>
         :root {
             --primary: #E11D48;
@@ -182,7 +192,6 @@
             position: relative;
         }
 
-        /* Estilos del Modo Edición */
         body.edit-mode .exercise-card {
             border: 2px dashed var(--primary-light);
             transform: scale(0.98);
@@ -230,12 +239,12 @@
         }
         
         body.edit-mode .exercise-header {
-            padding-right: 80px; /* Espacio para los botones de mover */
+            padding-right: 80px; 
         }
 
         body.edit-mode .series-container {
             opacity: 0.4;
-            pointer-events: none; /* Desactiva inputs mientras editas orden */
+            pointer-events: none; 
         }
 
         .exercise-img {
@@ -426,7 +435,6 @@
         </div>
         <div class="header-actions">
             <button class="icon-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Cambiar tema">
-                <!-- Por defecto se muestra la luna (modo claro) -->
                 <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                 </svg>
@@ -441,14 +449,8 @@
     </header>
 
     <div class="container">
-        <div class="day-selector" id="day-selector">
-            <!-- Day buttons injected here -->
-        </div>
-
-        <div id="workouts-container">
-            <!-- Workout forms injected here -->
-        </div>
-        
+        <div class="day-selector" id="day-selector"></div>
+        <div id="workouts-container"></div>
         <button class="reset-btn" onclick="limpiarDatos()">Empezar nueva semana (Borrar datos)</button>
     </div>
 
@@ -461,6 +463,15 @@
     </div>
 
     <script>
+        // Registro del Service Worker (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registrado correctamente'))
+                    .catch(err => console.log('Fallo al registrar el Service Worker', err));
+            });
+        }
+
         const defaultRutinas = [
             {
                 id: "day1",
@@ -527,7 +538,6 @@
         let isDarkMode = false;
 
         function loadConfig() {
-            // Cargar rutinas guardadas o inicializar con IDs únicos para cada ejercicio
             const savedConfig = localStorage.getItem('rutinas_config');
             if (savedConfig) {
                 rutinas = JSON.parse(savedConfig);
@@ -539,7 +549,6 @@
                 localStorage.setItem('rutinas_config', JSON.stringify(rutinas));
             }
 
-            // Cargar preferencias de tema
             isDarkMode = localStorage.getItem('dark_mode') === 'true';
             if (isDarkMode) {
                 document.body.classList.add('dark-mode');
@@ -555,14 +564,12 @@
             container.innerHTML = '';
 
             rutinas.forEach((rutina, index) => {
-                // Generar botones de día
                 const btn = document.createElement('button');
                 btn.className = `day-btn ${rutina.id === activeDayId ? 'active' : ''}`;
                 btn.textContent = rutina.title;
                 btn.onclick = () => showDay(rutina.id, btn);
                 selector.appendChild(btn);
 
-                // Generar contenedor del día
                 const dayDiv = document.createElement('div');
                 dayDiv.className = `workout-day ${rutina.id === activeDayId ? 'active' : ''}`;
                 dayDiv.id = rutina.id;
@@ -575,12 +582,10 @@
                 `;
                 dayDiv.appendChild(titleContainer);
 
-                // Generar ejercicios
                 rutina.exercises.forEach((ejercicio, exIndex) => {
                     const exCard = document.createElement('div');
                     exCard.className = 'exercise-card';
                     
-                    // Controles de edición (flechas subir/bajar)
                     const isFirst = exIndex === 0;
                     const isLast = exIndex === rutina.exercises.length - 1;
                     
@@ -609,7 +614,6 @@
                     const seriesContainer = document.createElement('div');
                     seriesContainer.className = 'series-container';
 
-                    // Usamos el ID permanente del ejercicio (ejercicio.id) para que los datos persistan al moverlo
                     for(let s = 1; s <= 3; s++) {
                         const serieKey = `${rutina.id}_${ejercicio.id}_s${s}`;
                         const savedWeight = localStorage.getItem(`${serieKey}_w`) || '';
@@ -657,7 +661,6 @@
             if(btnElement) {
                 btnElement.classList.add('active');
             } else {
-                // Si no se pasa elemento, busca el botón correspondiente
                 const buttons = document.querySelectorAll('.day-btn');
                 const index = rutinas.findIndex(r => r.id === dayId);
                 if(buttons[index]) buttons[index].classList.add('active');
@@ -665,7 +668,7 @@
         }
 
         function autoSave(serieKeyBase) {
-            if(isEditMode) return; // Prevenir guardado accidental en modo edición
+            if(isEditMode) return; 
             
             const weightInput = document.getElementById(`${serieKeyBase}_w`);
             localStorage.setItem(`${serieKeyBase}_w`, weightInput.value);
@@ -723,10 +726,8 @@
         function updateThemeIcon() {
             const iconSvg = document.getElementById('theme-icon');
             if (isDarkMode) {
-                // Icono de Sol
                 iconSvg.innerHTML = `<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
             } else {
-                // Icono de Luna
                 iconSvg.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>`;
             }
         }
@@ -753,12 +754,10 @@
             
             if (newIndex < 0 || newIndex >= exercisesArr.length) return;
             
-            // Intercambiar posiciones en el array
             const temp = exercisesArr[index];
             exercisesArr[index] = exercisesArr[newIndex];
             exercisesArr[newIndex] = temp;
             
-            // Guardar configuración y re-renderizar
             localStorage.setItem('rutinas_config', JSON.stringify(rutinas));
             renderApp();
         }
