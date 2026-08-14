@@ -14,6 +14,7 @@ html_content = """<!DOCTYPE html>
             --text-light: #64748B;
             --border: #E2E8F0;
             --success: #10B981;
+            --success-light: #D1FAE5; /* Color verde clarito para la serie completada */
         }
 
         * {
@@ -174,6 +175,17 @@ html_content = """<!DOCTYPE html>
             background-color: var(--bg-color);
             padding: 10px;
             border-radius: 12px;
+            transition: background-color 0.3s ease; /* Transición suave para el color verde */
+        }
+        
+        /* Clase que se añadirá cuando la serie esté completa */
+        .serie-row.completed {
+            background-color: var(--success-light);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        
+        .serie-row.completed .serie-badge {
+            background-color: var(--success);
         }
 
         .serie-badge {
@@ -187,6 +199,7 @@ html_content = """<!DOCTYPE html>
             justify-content: center;
             font-size: 0.8rem;
             font-weight: bold;
+            transition: background-color 0.3s ease;
         }
 
         .input-wrapper {
@@ -222,6 +235,12 @@ html_content = """<!DOCTYPE html>
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1);
+        }
+        
+        /* Ajuste de color de borde cuando está completado y tiene el foco */
+        .serie-row.completed .input-wrapper input:focus {
+            border-color: var(--success);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
         }
 
         .input-unit {
@@ -396,11 +415,9 @@ html_content = """<!DOCTYPE html>
                     const exCard = document.createElement('div');
                     exCard.className = 'exercise-card';
                     
-                    // Header del ejercicio con la imagen y el nombre
                     const headerDiv = document.createElement('div');
                     headerDiv.className = 'exercise-header';
                     
-                    // Fallback visual si la imagen aún no está subida al repositorio
                     const fallbackImg = "https://placehold.co/120x120/F1F5F9/94A3B8?text=Img";
                     
                     headerDiv.innerHTML = `
@@ -416,20 +433,23 @@ html_content = """<!DOCTYPE html>
                         const serieKey = `${rutina.id}_ex${exIndex}_s${s}`;
                         const savedWeight = localStorage.getItem(`${serieKey}_w`) || '';
                         const savedReps = localStorage.getItem(`${serieKey}_r`) || '';
+                        
+                        // Determinar si la serie ya estaba completada al cargar
+                        const isCompleted = savedWeight.trim() !== '' && savedReps.trim() !== '';
 
                         seriesContainer.innerHTML += `
-                            <div class="serie-row">
+                            <div class="serie-row ${isCompleted ? 'completed' : ''}" id="row_${serieKey}">
                                 <div class="serie-badge">${s}</div>
                                 <div class="input-wrapper">
                                     <input type="number" step="0.5" placeholder="Peso" 
                                            id="${serieKey}_w" value="${savedWeight}"
-                                           oninput="autoSave('${serieKey}_w')">
+                                           oninput="autoSave('${serieKey}')">
                                     <span class="input-unit">kg</span>
                                 </div>
                                 <div class="input-wrapper">
                                     <input type="number" placeholder="Reps" 
                                            id="${serieKey}_r" value="${savedReps}"
-                                           oninput="autoSave('${serieKey}_r')">
+                                           oninput="autoSave('${serieKey}')">
                                     <span class="input-unit">reps</span>
                                 </div>
                             </div>
@@ -451,10 +471,25 @@ html_content = """<!DOCTYPE html>
             btnElement.classList.add('active');
         }
 
-        function autoSave(inputId) {
-            const input = document.getElementById(inputId);
-            localStorage.setItem(inputId, input.value);
+        // Modificada para recibir la clave base de la serie y comprobar si está completada
+        function autoSave(serieKeyBase) {
+            // Guardar peso
+            const weightInput = document.getElementById(`${serieKeyBase}_w`);
+            localStorage.setItem(`${serieKeyBase}_w`, weightInput.value);
             
+            // Guardar reps
+            const repsInput = document.getElementById(`${serieKeyBase}_r`);
+            localStorage.setItem(`${serieKeyBase}_r`, repsInput.value);
+            
+            // Comprobar si ambos campos tienen valor para poner la fila verde
+            const row = document.getElementById(`row_${serieKeyBase}`);
+            if (weightInput.value.trim() !== '' && repsInput.value.trim() !== '') {
+                row.classList.add('completed');
+            } else {
+                row.classList.remove('completed');
+            }
+            
+            // Notificación de guardado
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(() => {
                 const toast = document.getElementById('toast');
@@ -472,6 +507,12 @@ html_content = """<!DOCTYPE html>
                     input.value = '';
                     localStorage.removeItem(input.id);
                 });
+                
+                // Quitar la clase completed de todas las filas
+                const rows = document.querySelectorAll('.serie-row');
+                rows.forEach(row => {
+                    row.classList.remove('completed');
+                });
             }
         }
 
@@ -479,9 +520,3 @@ html_content = """<!DOCTYPE html>
     </script>
 </body>
 </html>
-"""
-
-with open('index.html', 'w', encoding='utf-8') as f:
-    f.write(html_content)
-    
-print("File updated successfully.")
