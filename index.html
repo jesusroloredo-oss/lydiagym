@@ -532,15 +532,18 @@
         }
         
         function limpiarDatos() {
-            if(confirm('¿Estás seguro de que quieres borrar todos los pesos, repeticiones y marcas de completado para empezar una semana nueva?')) {
+            if(confirm('¿Estás seguro de que quieres borrar las repeticiones y desmarcar las series para empezar una nueva semana? (Tus pesos se mantendrán)')) {
                 const inputs = document.querySelectorAll('input');
                 inputs.forEach(input => {
-                    input.value = '';
-                    // Borramos pesos y reps
-                    localStorage.removeItem(input.id);
-                    // Borramos la marca de completado (usando la base del id)
-                    const baseId = input.id.substring(0, input.id.length - 2); // quita el "_w" o "_r"
-                    localStorage.removeItem(`${baseId}_done`);
+                    // Solo borramos las repeticiones, no los pesos
+                    if (input.id.endsWith('_r')) {
+                        input.value = '';
+                        localStorage.removeItem(input.id);
+                        
+                        // Borramos la marca de completado
+                        const baseId = input.id.substring(0, input.id.length - 2); 
+                        localStorage.removeItem(`${baseId}_done`);
+                    }
                 });
                 
                 // Quitar la clase completed visualmente
