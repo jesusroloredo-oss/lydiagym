@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+html_content = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -448,6 +448,74 @@
             background: var(--primary);
             color: white;
         }
+
+        /* --- Estilos para el Modal de Motivación --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px 24px;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 85%;
+            width: 320px;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border);
+        }
+        
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+        
+        .modal-content h3 { 
+            color: var(--text-dark); 
+            font-size: 1.5rem; 
+            margin-bottom: 12px;
+        }
+        
+        .modal-content p { 
+            color: var(--primary); 
+            font-weight: 700; 
+            font-size: 1.2rem; 
+            margin-bottom: 24px; 
+            line-height: 1.4;
+        }
+        
+        .modal-close-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s, transform 0.1s;
+        }
+        
+        .modal-close-btn:active {
+            transform: scale(0.96);
+            background: #BE123C;
+        }
     </style>
 </head>
 <body>
@@ -489,8 +557,16 @@
         <span id="toast-msg">Guardado automáticamente</span>
     </div>
 
+    <!-- Modal de Motivación -->
+    <div id="motivational-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modal-title">Well done!</h3>
+            <p id="modal-message">Keep pushing!</p>
+            <button class="modal-close-btn" onclick="closeModal()">Continue</button>
+        </div>
+    </div>
+
     <script>
-        // Registro del Service Worker (PWA)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
@@ -558,7 +634,22 @@
             }
         ];
 
-        // -------------------------------------------------------------
+        // Frases motivadoras en inglés
+        const motivationalQuotes = [
+            "Great job!", 
+            "Keep pushing!", 
+            "One step closer!",
+            "You got this!", 
+            "Stronger every rep!", 
+            "Beast mode activated!",
+            "Outstanding!", 
+            "Crushed it!", 
+            "Feel the burn!", 
+            "Unstoppable!",
+            "No excuses!", 
+            "Make it count!", 
+            "Train insane or remain the same!"
+        ];
 
         let rutinas = [];
         let saveTimeout;
@@ -715,12 +806,71 @@
             const isCurrentlyDone = row.classList.contains('completed');
             
             if (isCurrentlyDone) {
+                // Desmarcar
                 row.classList.remove('completed');
                 localStorage.setItem(`${serieKey}_done`, 'false');
             } else {
+                // Marcar
                 row.classList.add('completed');
                 localStorage.setItem(`${serieKey}_done`, 'true');
+
+                // --- Lógica de Pop-up Motivacional ---
+                const parts = serieKey.split('_'); 
+                const dayId = parts[0];
+                const exId = parts[1];
+
+                // Comprobar si todas las series del ejercicio actual están hechas
+                let currentExDone = true;
+                for(let s = 1; s <= 3; s++) {
+                    if (localStorage.getItem(`${dayId}_${exId}_s${s}_done`) !== 'true') {
+                        currentExDone = false;
+                        break;
+                    }
+                }
+
+                // Coger una frase motivadora al azar
+                const quote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+                let extraMessage = "";
+
+                if (currentExDone) {
+                    // Contar cuántos ejercicios quedan del día activo
+                    const dayIndex = rutinas.findIndex(r => r.id === dayId);
+                    const exercisesArr = rutinas[dayIndex].exercises;
+
+                    let completedExCount = 0;
+                    exercisesArr.forEach(ex => {
+                        let exDone = true;
+                        for(let s = 1; s <= 3; s++) {
+                            if (localStorage.getItem(`${dayId}_${ex.id}_s${s}_done`) !== 'true') {
+                                exDone = false;
+                                break;
+                            }
+                        }
+                        if (exDone) completedExCount++;
+                    });
+
+                    const remaining = exercisesArr.length - completedExCount;
+
+                    if (remaining > 0) {
+                        extraMessage = `<div style="margin-top: 15px; color: var(--text-light); font-size:1rem; font-weight:normal;">Just ${remaining} exercise${remaining > 1 ? 's' : ''} more!</div>`;
+                    } else {
+                        extraMessage = `<div style="margin-top: 15px; color: var(--success); font-size:1.1rem; font-weight:bold;">Workout complete! 🎉</div>`;
+                    }
+                }
+
+                showModal("Nice!", quote + extraMessage);
             }
+        }
+
+        // Mostrar y cerrar el Pop-up (Modal)
+        function showModal(title, messageHTML) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-message').innerHTML = messageHTML;
+            document.getElementById('motivational-modal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('motivational-modal').classList.remove('show');
         }
         
         function limpiarDatos() {
@@ -745,7 +895,6 @@
             }
         }
 
-        // Nueva función para forzar la recarga del código HTML nuevo
         function restaurarEjerciciosOriginales() {
             if(confirm('¿Quieres cargar los ejercicios tal y como están en el código actual? Perderás el orden que hayas establecido manualmente.')) {
                 localStorage.removeItem('rutinas_config');
