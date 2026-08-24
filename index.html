@@ -480,6 +480,16 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             border: 1px solid var(--border);
         }
+
+        .success-gif {
+            width: 100%;
+            max-width: 220px;
+            height: auto;
+            border-radius: 12px;
+            margin: 15px auto;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: block;
+        }
         
         .modal-overlay.show .modal-content {
             transform: scale(1);
@@ -649,6 +659,13 @@
             "No excuses!", 
             "Make it count!", 
             "Train insane or remain the same!"
+        ];
+
+        // Gifs de gatos para el final del entreno
+        const successGifs = [
+            "img/beatboxing-cat-cat.jpg",
+            "img/boxing-cat-massage.jpg",
+            "img/cat-kung-fu.jpg"
         ];
 
         let rutinas = [];
@@ -852,13 +869,24 @@
                     const remaining = exercisesArr.length - completedExCount;
 
                     if (remaining > 0) {
-                        extraMessage = `<div style="margin-top: 15px; color: var(--text-light); font-size:1rem; font-weight:normal;">Just ${remaining} exercise${remaining > 1 ? 's' : ''} more!</div>`;
+                        extraMessage = `
+                            <p style="color: var(--primary); font-weight: 700; font-size: 1.2rem; margin-bottom: 24px;">${quote}</p>
+                            <div style="color: var(--text-light); font-size:1rem; font-weight:normal;">Just ${remaining} exercise${remaining > 1 ? 's' : ''} more!</div>
+                        `;
                     } else {
-                        extraMessage = `<div style="margin-top: 15px; color: var(--success); font-size:1.1rem; font-weight:bold;">Workout complete! 🎉</div>`;
+                        // Aquí salen AMBOS: la frase motivadora y el GIF final
+                        const randomGif = successGifs[Math.floor(Math.random() * successGifs.length)];
+                        extraMessage = `
+                            <p style="color: var(--primary); font-weight: 700; font-size: 1.2rem; margin-bottom: 10px;">${quote}</p>
+                            <div style="color: var(--success); font-size:1.1rem; font-weight:bold; margin-bottom: 15px;">Workout complete! 🎉</div>
+                            <img src="${randomGif}" alt="Success Cat" class="success-gif" onerror="this.style.display='none'">
+                        `;
                     }
+                } else {
+                    extraMessage = `<p style="color: var(--primary); font-weight: 700; font-size: 1.2rem; margin-bottom: 24px;">${quote}</p>`;
                 }
 
-                showModal("Nice!", quote + extraMessage);
+                showModal("Nice!", extraMessage);
             }
         }
 
